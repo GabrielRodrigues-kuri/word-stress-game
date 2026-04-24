@@ -1,0 +1,1001 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Stress Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1929;
+    --card: #221f35;
+    --accent: #ff6b6b;
+    --accent2: #4ecdc4;
+    --accent3: #ffe66d;
+    --text: #fffffe;
+    --muted: #a7a9be;
+    --success: #4ecdc4;
+    --wrong: #ff6b6b;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘DM Sans’, sans-serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 100;
+opacity: 0.5;
+}
+
+.container {
+max-width: 700px;
+margin: 0 auto;
+padding: 2rem 1.5rem 4rem;
+}
+
+/* Header */
+header {
+text-align: center;
+margin-bottom: 2.5rem;
+animation: fadeDown 0.6s ease both;
+}
+
+.badge {
+display: inline-block;
+background: var(–accent);
+color: white;
+font-family: ‘Syne’, sans-serif;
+font-size: 0.65rem;
+font-weight: 700;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+padding: 0.3rem 0.8rem;
+border-radius: 2rem;
+margin-bottom: 0.8rem;
+}
+
+h1 {
+font-family: ‘Syne’, sans-serif;
+font-size: clamp(2rem, 6vw, 3rem);
+font-weight: 800;
+line-height: 1.1;
+background: linear-gradient(135deg, var(–text) 0%, var(–accent2) 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.subtitle {
+color: var(–muted);
+font-size: 0.95rem;
+margin-top: 0.5rem;
+font-weight: 300;
+}
+
+/* Score bar */
+.score-bar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background: var(–surface);
+border: 1px solid rgba(255,255,255,0.07);
+border-radius: 1rem;
+padding: 0.9rem 1.4rem;
+margin-bottom: 2rem;
+animation: fadeDown 0.6s 0.1s ease both;
+}
+
+.score-item {
+text-align: center;
+}
+
+.score-label {
+font-size: 0.65rem;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+color: var(–muted);
+font-weight: 500;
+}
+
+.score-value {
+font-family: ‘Syne’, sans-serif;
+font-size: 1.4rem;
+font-weight: 800;
+color: var(–accent3);
+transition: transform 0.2s;
+}
+
+.score-value.pop {
+animation: pop 0.3s ease;
+}
+
+/* Info card */
+.info-card {
+background: linear-gradient(135deg, rgba(78,205,196,0.12), rgba(78,205,196,0.04));
+border: 1px solid rgba(78,205,196,0.25);
+border-radius: 1rem;
+padding: 1.1rem 1.4rem;
+margin-bottom: 2rem;
+font-size: 0.9rem;
+color: var(–accent2);
+animation: fadeDown 0.6s 0.2s ease both;
+}
+
+.info-card strong {
+font-weight: 700;
+}
+
+/* Mode selector */
+.mode-tabs {
+display: flex;
+gap: 0.5rem;
+margin-bottom: 1.5rem;
+background: var(–surface);
+border-radius: 0.8rem;
+padding: 0.3rem;
+animation: fadeDown 0.6s 0.25s ease both;
+}
+
+.mode-tab {
+flex: 1;
+padding: 0.6rem 1rem;
+border-radius: 0.6rem;
+border: none;
+background: transparent;
+color: var(–muted);
+font-family: ‘DM Sans’, sans-serif;
+font-size: 0.8rem;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.2s;
+text-align: center;
+}
+
+.mode-tab.active {
+background: var(–accent);
+color: white;
+font-weight: 700;
+}
+
+/* Game area */
+#game-area {
+animation: fadeDown 0.6s 0.3s ease both;
+}
+
+/* DRAG MODE */
+.drag-instruction {
+text-align: center;
+color: var(–muted);
+font-size: 0.85rem;
+margin-bottom: 1.2rem;
+}
+
+.drop-zones {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 1rem;
+margin-bottom: 1.5rem;
+}
+
+.drop-zone {
+background: var(–surface);
+border: 2px dashed rgba(255,255,255,0.12);
+border-radius: 1rem;
+padding: 1rem;
+min-height: 140px;
+transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone.drag-over {
+border-color: var(–accent2);
+background: rgba(78,205,196,0.07);
+}
+
+.drop-zone.correct-zone {
+border-color: var(–success);
+}
+
+.zone-label {
+font-family: ‘Syne’, sans-serif;
+font-size: 0.75rem;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 0.08em;
+margin-bottom: 0.8rem;
+display: flex;
+align-items: center;
+gap: 0.4rem;
+}
+
+.zone-label .dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.zone-first .zone-label .dot { background: var(–accent); }
+.zone-second .zone-label .dot { background: var(–accent2); }
+.zone-first .zone-label { color: var(–accent); }
+.zone-second .zone-label { color: var(–accent2); }
+
+.zone-words {
+display: flex;
+flex-wrap: wrap;
+gap: 0.5rem;
+min-height: 60px;
+}
+
+/* Word bank */
+.word-bank {
+background: var(–surface);
+border: 1px solid rgba(255,255,255,0.07);
+border-radius: 1rem;
+padding: 1.2rem;
+margin-bottom: 1.5rem;
+}
+
+.word-bank-title {
+font-size: 0.7rem;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+color: var(–muted);
+margin-bottom: 0.8rem;
+font-weight: 500;
+}
+
+.word-pool {
+display: flex;
+flex-wrap: wrap;
+gap: 0.5rem;
+}
+
+/* Word chips */
+.word-chip {
+background: var(–card);
+border: 1px solid rgba(255,255,255,0.1);
+border-radius: 0.5rem;
+padding: 0.45rem 0.85rem;
+font-family: ‘Syne’, sans-serif;
+font-size: 0.85rem;
+font-weight: 700;
+cursor: grab;
+user-select: none;
+transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+position: relative;
+touch-action: none;
+}
+
+.word-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.word-chip:active { transform: scale(0.95); cursor: grabbing; }
+.word-chip.dragging { opacity: 0.4; }
+.word-chip.placed { opacity: 0.5; cursor: default; pointer-events: none; }
+
+.word-chip.correct-chip {
+background: rgba(78,205,196,0.15);
+border-color: var(–success);
+color: var(–success);
+}
+
+.word-chip.wrong-chip {
+background: rgba(255,107,107,0.15);
+border-color: var(–wrong);
+color: var(–wrong);
+animation: shake 0.3s ease;
+}
+
+/* QUIZ MODE */
+.quiz-word-display {
+text-align: center;
+margin-bottom: 1.5rem;
+}
+
+.big-word {
+font-family: ‘Syne’, sans-serif;
+font-size: clamp(2.2rem, 8vw, 3.5rem);
+font-weight: 800;
+letter-spacing: 0.05em;
+}
+
+.syllable { display: inline; }
+.syllable-divider {
+display: inline;
+color: rgba(255,255,255,0.2);
+font-weight: 300;
+}
+
+.quiz-question {
+text-align: center;
+color: var(–muted);
+font-size: 0.95rem;
+margin-bottom: 1.5rem;
+}
+
+.quiz-options {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 0.8rem;
+margin-bottom: 1.5rem;
+}
+
+.quiz-option {
+background: var(–surface);
+border: 2px solid rgba(255,255,255,0.08);
+border-radius: 0.9rem;
+padding: 1rem;
+cursor: pointer;
+transition: all 0.2s;
+text-align: center;
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+font-size: 0.9rem;
+color: var(–text);
+}
+
+.quiz-option:hover:not(:disabled) {
+border-color: var(–accent2);
+background: rgba(78,205,196,0.07);
+transform: translateY(-2px);
+}
+
+.quiz-option.selected-correct {
+border-color: var(–success);
+background: rgba(78,205,196,0.15);
+color: var(–success);
+}
+
+.quiz-option.selected-wrong {
+border-color: var(–wrong);
+background: rgba(255,107,107,0.15);
+color: var(–wrong);
+animation: shake 0.3s ease;
+}
+
+.quiz-option.reveal-correct {
+border-color: var(–success);
+background: rgba(78,205,196,0.08);
+color: var(–success);
+}
+
+.quiz-progress {
+display: flex;
+gap: 0.4rem;
+justify-content: center;
+margin-bottom: 1.2rem;
+}
+
+.progress-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: rgba(255,255,255,0.15);
+transition: background 0.3s;
+}
+
+.progress-dot.done-correct { background: var(–success); }
+.progress-dot.done-wrong { background: var(–wrong); }
+.progress-dot.current { background: var(–accent3); }
+
+/* Feedback message */
+.feedback {
+text-align: center;
+font-size: 1rem;
+font-weight: 700;
+min-height: 1.5em;
+transition: all 0.3s;
+font-family: ‘Syne’, sans-serif;
+}
+
+.feedback.good { color: var(–success); }
+.feedback.bad { color: var(–wrong); }
+
+/* Buttons */
+.btn {
+display: inline-flex;
+align-items: center;
+gap: 0.4rem;
+padding: 0.75rem 1.5rem;
+border-radius: 0.7rem;
+border: none;
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+font-size: 0.9rem;
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.btn-primary {
+background: var(–accent);
+color: white;
+}
+
+.btn-primary:hover { background: #ff5252; transform: translateY(-1px); }
+
+.btn-secondary {
+background: var(–surface);
+border: 1px solid rgba(255,255,255,0.1);
+color: var(–muted);
+}
+
+.btn-secondary:hover { border-color: var(–accent2); color: var(–accent2); }
+
+.action-row {
+display: flex;
+gap: 0.8rem;
+justify-content: center;
+margin-top: 1rem;
+flex-wrap: wrap;
+}
+
+/* Result panel */
+#result-panel {
+display: none;
+text-align: center;
+padding: 2rem;
+background: var(–surface);
+border-radius: 1.2rem;
+border: 1px solid rgba(255,255,255,0.07);
+animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.result-emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+.result-title { font-family: ‘Syne’, sans-serif; font-size: 1.8rem; font-weight: 800; }
+.result-score { color: var(–accent3); font-size: 1.1rem; margin: 0.5rem 0 1.5rem; }
+
+/* REVIEW section */
+.review-list {
+text-align: left;
+margin: 1rem 0;
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+
+.review-item {
+display: flex;
+align-items: center;
+gap: 0.7rem;
+font-size: 0.85rem;
+color: var(–muted);
+}
+
+.review-item .rword {
+font-family: ‘Syne’, sans-serif;
+font-weight: 700;
+color: var(–text);
+min-width: 90px;
+}
+
+.review-item .stress-viz {
+display: flex;
+gap: 0.3rem;
+}
+
+.stress-block {
+height: 10px;
+border-radius: 3px;
+background: rgba(255,255,255,0.15);
+transition: all 0.3s;
+}
+
+.stress-block.stressed {
+background: var(–accent2);
+width: 24px;
+}
+
+.stress-block.unstressed {
+background: rgba(255,255,255,0.2);
+width: 14px;
+height: 6px;
+margin-top: 2px;
+}
+
+/* Animations */
+@keyframes fadeDown {
+from { opacity: 0; transform: translateY(-16px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop {
+0% { transform: scale(1); }
+50% { transform: scale(1.3); }
+100% { transform: scale(1); }
+}
+
+@keyframes popIn {
+from { opacity: 0; transform: scale(0.8); }
+to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-6px); }
+75% { transform: translateX(6px); }
+}
+
+@keyframes celebrate {
+0% { transform: translateY(0) rotate(0deg); }
+50% { transform: translateY(-8px) rotate(5deg); }
+100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Syllable highlight on hover in quiz */
+.syl-btn {
+display: inline;
+cursor: pointer;
+padding: 0.1em 0.05em;
+border-radius: 0.2em;
+transition: background 0.15s;
+}
+.syl-btn:hover { background: rgba(78,205,196,0.2); }
+.syl-btn.highlighted { background: rgba(255,230,109,0.3); color: var(–accent3); }
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+.drop-zones { grid-template-columns: 1fr; }
+.quiz-options { grid-template-columns: 1fr 1fr; }
+.big-word { font-size: 2rem; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="badge">🎯 Pronunciation Practice</div>
+    <h1>Word Stress</h1>
+    <p class="subtitle">Two-syllable words · Which syllable carries the stress?</p>
+  </header>
+
+  <div class="score-bar">
+    <div class="score-item">
+      <div class="score-label">Score</div>
+      <div class="score-value" id="score-display">0</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">Streak 🔥</div>
+      <div class="score-value" id="streak-display">0</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">Correct</div>
+      <div class="score-value" id="correct-display">0/0</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <strong>💡 Rule:</strong> About 80% of two-syllable words are stressed on the <strong>first</strong> syllable (e.g., <em>AR·gue</em>). Can you find the exceptions?
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('drag')">🃏 Sort Cards</button>
+    <button class="mode-tab" onclick="setMode('quiz')">⚡ Quick Quiz</button>
+    <button class="mode-tab" onclick="setMode('review')">📖 Review All</button>
+  </div>
+
+  <div id="game-area"></div>
+
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const allWords = [
+  { word: "argue",    syllables: ["ar","gue"],      stressed: 0 },
+  { word: "believe",  syllables: ["be","lieve"],    stressed: 1 },
+  { word: "boyfriend",syllables: ["boy","friend"],  stressed: 0 },
+  { word: "famous",   syllables: ["fa","mous"],     stressed: 0 },
+  { word: "fortune",  syllables: ["for","tune"],    stressed: 0 },
+  { word: "future",   syllables: ["fu","ture"],     stressed: 0 },
+  { word: "idea",     syllables: ["i","dea"],       stressed: 1 },
+  { word: "lucky",    syllables: ["luck","y"],      stressed: 0 },
+  { word: "married",  syllables: ["mar","ried"],    stressed: 0 },
+  { word: "money",    syllables: ["mon","ey"],      stressed: 0 },
+  { word: "problem",  syllables: ["prob","lem"],    stressed: 0 },
+  { word: "question", syllables: ["ques","tion"],   stressed: 0 },
+  { word: "surprise", syllables: ["sur","prise"],   stressed: 1 },
+  { word: "today",    syllables: ["to","day"],      stressed: 1 },
+  { word: "travel",   syllables: ["trav","el"],     stressed: 0 },
+  { word: "worry",    syllables: ["wor","ry"],      stressed: 0 },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let score = 0;
+let streak = 0;
+let totalAnswered = 0;
+let totalCorrect = 0;
+let currentMode = 'drag';
+let quizIndex = 0;
+let quizOrder = [];
+let quizResults = [];
+let dragState = {}; // placement[word] = 0|1|null
+
+function updateScoreBar() {
+  const sv = document.getElementById('score-display');
+  sv.textContent = score;
+  sv.classList.remove('pop');
+  void sv.offsetWidth;
+  sv.classList.add('pop');
+  document.getElementById('streak-display').textContent = streak;
+  document.getElementById('correct-display').textContent = `${totalCorrect}/${totalAnswered}`;
+}
+
+// ─── MODE SWITCHING ──────────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['drag','quiz','review'][i] === mode);
+  });
+  if (mode === 'drag') renderDrag();
+  else if (mode === 'quiz') startQuiz();
+  else renderReview();
+}
+
+// ─── DRAG / SORT MODE ────────────────────────────────────────────────────────
+function renderDrag() {
+  dragState = {};
+  allWords.forEach(w => dragState[w.word] = null);
+
+  const ga = document.getElementById('game-area');
+  ga.innerHTML = `
+    <p class="drag-instruction">Drag each word to its stress category 👇</p>
+    <div class="drop-zones">
+      <div class="drop-zone zone-first" id="zone-0"
+           ondragover="dzOver(event,0)" ondragleave="dzLeave(event)" ondrop="dzDrop(event,0)">
+        <div class="zone-label"><span class="dot"></span>1st Syllable Stressed</div>
+        <div class="zone-words" id="zone-words-0"></div>
+      </div>
+      <div class="drop-zone zone-second" id="zone-1"
+           ondragover="dzOver(event,1)" ondragleave="dzLeave(event)" ondrop="dzDrop(event,1)">
+        <div class="zone-label"><span class="dot"></span>2nd Syllable Stressed</div>
+        <div class="zone-words" id="zone-words-1"></div>
+      </div>
+    </div>
+    <div class="word-bank">
+      <div class="word-bank-title">Word Bank — drag from here</div>
+      <div class="word-pool" id="word-pool">
+        ${shuffle([...allWords]).map(w =>
+          `<div class="word-chip" id="chip-${w.word}" draggable="true"
+                ondragstart="dragStart(event,'${w.word}')"
+                ondragend="dragEnd(event,'${w.word}')">${w.word}</div>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="feedback" id="drag-feedback"></div>
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="checkDrag()">Check Answers ✓</button>
+      <button class="btn btn-secondary" onclick="renderDrag()">Reset ↺</button>
+    </div>
+  `;
+
+  // Touch drag support
+  document.querySelectorAll('.word-chip').forEach(chip => {
+    chip.addEventListener('touchstart', touchStart, {passive: false});
+    chip.addEventListener('touchmove', touchMove, {passive: false});
+    chip.addEventListener('touchend', touchEnd, {passive: false});
+  });
+}
+
+let draggingWord = null;
+let touchClone = null;
+let touchOrigin = null;
+
+function dragStart(e, word) {
+  draggingWord = word;
+  document.getElementById('chip-' + word).classList.add('dragging');
+  e.dataTransfer.setData('text/plain', word);
+}
+function dragEnd(e, word) {
+  document.getElementById('chip-' + word)?.classList.remove('dragging');
+}
+function dzOver(e, zone) {
+  e.preventDefault();
+  document.getElementById('zone-' + zone).classList.add('drag-over');
+}
+function dzLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function dzDrop(e, zone) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const word = e.dataTransfer.getData('text/plain');
+  placeWord(word, zone);
+}
+
+function placeWord(word, zone) {
+  // Remove from old zone
+  document.querySelectorAll('#zone-words-0 .word-chip, #zone-words-1 .word-chip').forEach(el => {
+    if (el.dataset.word === word) el.remove();
+  });
+  // Remove from pool (hide)
+  const poolChip = document.getElementById('chip-' + word);
+  if (poolChip) poolChip.classList.add('placed');
+
+  dragState[word] = zone;
+
+  // Add to zone
+  const zoneEl = document.getElementById('zone-words-' + zone);
+  const chip = document.createElement('div');
+  chip.className = 'word-chip';
+  chip.dataset.word = word;
+  chip.textContent = word;
+  chip.draggable = true;
+  chip.addEventListener('dragstart', e => { draggingWord = word; e.dataTransfer.setData('text/plain', word); });
+  chip.addEventListener('dblclick', () => returnToPool(word));
+  chip.title = 'Double-click to return to pool';
+  zoneEl.appendChild(chip);
+}
+
+function returnToPool(word) {
+  document.querySelectorAll('#zone-words-0 .word-chip, #zone-words-1 .word-chip').forEach(el => {
+    if (el.dataset.word === word) el.remove();
+  });
+  const poolChip = document.getElementById('chip-' + word);
+  if (poolChip) poolChip.classList.remove('placed');
+  dragState[word] = null;
+}
+
+// Touch drag
+function touchStart(e) {
+  const chip = e.currentTarget;
+  draggingWord = chip.id.replace('chip-', '') || chip.dataset.word;
+  touchOrigin = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  touchClone = chip.cloneNode(true);
+  touchClone.style.position = 'fixed';
+  touchClone.style.pointerEvents = 'none';
+  touchClone.style.opacity = '0.85';
+  touchClone.style.zIndex = '999';
+  touchClone.style.width = chip.offsetWidth + 'px';
+  touchClone.style.left = (e.touches[0].clientX - chip.offsetWidth/2) + 'px';
+  touchClone.style.top = (e.touches[0].clientY - chip.offsetHeight/2) + 'px';
+  document.body.appendChild(touchClone);
+  e.preventDefault();
+}
+function touchMove(e) {
+  if (!touchClone) return;
+  touchClone.style.left = (e.touches[0].clientX - touchClone.offsetWidth/2) + 'px';
+  touchClone.style.top = (e.touches[0].clientY - touchClone.offsetHeight/2) + 'px';
+  e.preventDefault();
+}
+function touchEnd(e) {
+  if (!touchClone) return;
+  const x = e.changedTouches[0].clientX;
+  const y = e.changedTouches[0].clientY;
+  touchClone.remove(); touchClone = null;
+
+  // Find which zone we dropped on
+  for (let z = 0; z <= 1; z++) {
+    const zone = document.getElementById('zone-' + z);
+    if (!zone) continue;
+    const rect = zone.getBoundingClientRect();
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+      placeWord(draggingWord, z);
+      return;
+    }
+  }
+}
+
+function checkDrag() {
+  let allPlaced = true;
+  let correct = 0;
+  const feedback = document.getElementById('drag-feedback');
+
+  allWords.forEach(w => {
+    if (dragState[w.word] === null) { allPlaced = false; return; }
+    const zoneChips = document.querySelectorAll(`#zone-words-${dragState[w.word]} .word-chip`);
+    zoneChips.forEach(chip => {
+      if (chip.dataset.word === w.word || chip.textContent === w.word) {
+        const isCorrect = dragState[w.word] === w.stressed;
+        chip.classList.remove('correct-chip','wrong-chip');
+        chip.classList.add(isCorrect ? 'correct-chip' : 'wrong-chip');
+        if (isCorrect) correct++;
+      }
+    });
+  });
+
+  if (!allPlaced) {
+    feedback.textContent = '⚠️ Place all words first!';
+    feedback.className = 'feedback bad';
+    return;
+  }
+
+  const pts = correct * 5;
+  score += pts;
+  totalAnswered += allWords.length;
+  totalCorrect += correct;
+  streak = correct === allWords.length ? streak + 1 : 0;
+  updateScoreBar();
+
+  if (correct === allWords.length) {
+    feedback.textContent = `🎉 Perfect! All ${allWords.length} correct! +${pts} pts`;
+    feedback.className = 'feedback good';
+  } else {
+    const wrong = allWords.length - correct;
+    feedback.textContent = `✅ ${correct}/${allWords.length} correct — the ${wrong} in red need moving!`;
+    feedback.className = correct > allWords.length / 2 ? 'feedback good' : 'feedback bad';
+  }
+}
+
+// ─── QUIZ MODE ───────────────────────────────────────────────────────────────
+function startQuiz() {
+  quizOrder = shuffle([...allWords]);
+  quizIndex = 0;
+  quizResults = new Array(allWords.length).fill(null);
+  renderQuiz();
+}
+
+function renderQuiz() {
+  if (quizIndex >= quizOrder.length) { showQuizResults(); return; }
+  const w = quizOrder[quizIndex];
+
+  const dots = quizOrder.map((_, i) => {
+    let cls = 'progress-dot';
+    if (i < quizIndex) cls += quizResults[i] ? ' done-correct' : ' done-wrong';
+    else if (i === quizIndex) cls += ' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  const wordDisplay = w.syllables.map((s, i) => {
+    const upper = w.stressed === i ? `<strong>${s.toUpperCase()}</strong>` : s;
+    const div = i < w.syllables.length - 1 ? `<span class="syllable-divider">·</span>` : '';
+    return `<span class="syllable">${upper}</span>${div}`;
+  }).join('');
+
+  document.getElementById('game-area').innerHTML = `
+    <div class="quiz-progress">${dots}</div>
+    <div class="quiz-word-display">
+      <div class="big-word" id="quiz-big-word">${w.word}</div>
+      <div style="color:var(--muted);font-size:0.75rem;margin-top:0.4rem;">${w.syllables.join(' · ')}</div>
+    </div>
+    <p class="quiz-question">Which syllable is stressed?</p>
+    <div class="quiz-options">
+      <button class="quiz-option" id="opt-0" onclick="answerQuiz(0)">
+        <div style="font-size:1.1rem;color:var(--accent);">${w.syllables[0].toUpperCase()}</div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem;">1st syllable</div>
+      </button>
+      <button class="quiz-option" id="opt-1" onclick="answerQuiz(1)">
+        <div style="font-size:1.1rem;color:var(--accent2);">${w.syllables[1].toUpperCase()}</div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem;">2nd syllable</div>
+      </button>
+    </div>
+    <div class="feedback" id="quiz-feedback"></div>
+    <div class="action-row" id="quiz-actions" style="display:none">
+      <button class="btn btn-primary" onclick="nextQuiz()">Next →</button>
+    </div>
+  `;
+}
+
+function answerQuiz(choice) {
+  const w = quizOrder[quizIndex];
+  const isCorrect = choice === w.stressed;
+  quizResults[quizIndex] = isCorrect;
+
+  document.querySelectorAll('.quiz-option').forEach(b => b.disabled = true);
+  document.getElementById('opt-' + choice).classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+  if (!isCorrect) document.getElementById('opt-' + w.stressed).classList.add('reveal-correct');
+
+  const fb = document.getElementById('quiz-feedback');
+  if (isCorrect) {
+    score += 10; streak++;
+    totalCorrect++; totalAnswered++;
+    fb.textContent = ['🎯 Correct!', '✅ Nice!', '🔥 Yes!', '⭐ Spot on!'][Math.floor(Math.random()*4)];
+    fb.className = 'feedback good';
+  } else {
+    streak = 0; totalAnswered++;
+    const correct_syl = w.syllables[w.stressed].toUpperCase();
+    fb.textContent = `❌ It's "${correct_syl}" — ${w.word.toUpperCase()} stressed on syllable ${w.stressed + 1}`;
+    fb.className = 'feedback bad';
+  }
+
+  updateScoreBar();
+  document.getElementById('quiz-actions').style.display = 'flex';
+}
+
+function nextQuiz() {
+  quizIndex++;
+  renderQuiz();
+}
+
+function showQuizResults() {
+  const correct = quizResults.filter(Boolean).length;
+  const pct = Math.round(correct / quizOrder.length * 100);
+  const emoji = pct === 100 ? '🏆' : pct >= 75 ? '🌟' : pct >= 50 ? '👍' : '💪';
+  const msg = pct === 100 ? 'Flawless!' : pct >= 75 ? 'Great work!' : pct >= 50 ? 'Good effort!' : 'Keep practising!';
+
+  document.getElementById('game-area').innerHTML = `
+    <div id="result-panel" style="display:block">
+      <div class="result-emoji">${emoji}</div>
+      <div class="result-title">${msg}</div>
+      <div class="result-score">${correct}/${quizOrder.length} correct · ${pct}%</div>
+      <div class="review-list">
+        ${quizOrder.map((w, i) => `
+          <div class="review-item">
+            <div class="rword">${w.word}</div>
+            <div class="stress-viz">
+              ${w.syllables.map((s, j) => `
+                <div class="stress-block ${w.stressed === j ? 'stressed' : 'unstressed'}" title="${s}"></div>
+              `).join('')}
+            </div>
+            <div>${quizResults[i] ? '✅' : '❌'}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="startQuiz()">Try Again 🔄</button>
+        <button class="btn btn-secondary" onclick="setMode('review')">See All Words</button>
+      </div>
+    </div>
+  `;
+}
+
+// ─── REVIEW MODE ─────────────────────────────────────────────────────────────
+function renderReview() {
+  const first = allWords.filter(w => w.stressed === 0);
+  const second = allWords.filter(w => w.stressed === 1);
+
+  function card(w) {
+    return `
+      <div style="display:flex;align-items:center;gap:0.8rem;padding:0.7rem 1rem;background:var(--card);border-radius:0.7rem;border:1px solid rgba(255,255,255,0.06);">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;min-width:85px;">
+          ${w.syllables.map((s,i) => i === w.stressed
+            ? `<span style="color:var(--accent3);font-size:1.15em;">${s.toUpperCase()}</span>`
+            : `<span style="color:var(--muted);font-size:0.85em;">${s}</span>`
+          ).join('<span style="color:rgba(255,255,255,0.2);">·</span>')}
+        </div>
+        <div class="stress-viz">
+          ${w.syllables.map((s,j) => `<div class="stress-block ${w.stressed===j?'stressed':'unstressed'}"></div>`).join('')}
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);">syl. ${w.stressed+1}</div>
+      </div>`;
+  }
+
+  document.getElementById('game-area').innerHTML = `
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:0.7rem;">
+        🔴 1st Syllable Stressed (${first.length} words)
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">${first.map(card).join('')}</div>
+    </div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.7rem;">
+        🟢 2nd Syllable Stressed (${second.length} words) — the exceptions!
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">${second.map(card).join('')}</div>
+    </div>
+    <div class="action-row" style="margin-top:1.5rem;">
+      <button class="btn btn-primary" onclick="setMode('quiz')">Test Yourself ⚡</button>
+      <button class="btn btn-secondary" onclick="setMode('drag')">Sort Cards 🃏</button>
+    </div>
+  `;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderDrag();
+</script>
+
+</body>
+</html>
